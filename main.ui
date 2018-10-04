@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CSIViewer</class>
+ <widget class="QMainWindow" name="CSIViewer">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>803</width>
+    <height>608</height>
+   </rect>
+  </property>
+  <property name="focusPolicy">
+   <enum>Qt::ClickFocus</enum>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="whatsThis">
+   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;CSIViewer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QFrame" name="frame">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>10</y>
+      <width>801</width>
+      <height>401</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+   </widget>
+   <widget class="QWidget" name="formLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>450</y>
+      <width>214</width>
+      <height>120</height>
+     </rect>
+    </property>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="modeLabel">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>模式：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="modeBox">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+         <stylestrategy>PreferDefault</stylestrategy>
+        </font>
+       </property>
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="editable">
+        <bool>false</bool>
+       </property>
+       <property name="maxCount">
+        <number>2147483647</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>单子载显示</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>天线对显示</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>全数据显示</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="antennaLabel">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>天线选择：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="antennaBox">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="maxVisibleItems">
+        <number>16</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>A</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>B</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>C</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="subcarrierLabel">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>子载波选择：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QComboBox" name="subcarrierBox">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
+       <item>
+        <property name="text">
+         <string>NO.1</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.2</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.3</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.4</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.5</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.6</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.7</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.8</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.9</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.10</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.11</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.12</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.13</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.14</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.15</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.16</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.17</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.18</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.19</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.20</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.21</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.22</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.23</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.24</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.25</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.26</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.27</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.28</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.29</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>NO.30</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QSplitter" name="splitter">
+    <property name="geometry">
+     <rect>
+      <x>380</x>
+      <y>520</y>
+      <width>240</width>
+      <height>34</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+    <widget class="QPushButton" name="startButton">
+     <property name="font">
+      <font>
+       <pointsize>14</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>开始</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pauseButton">
+     <property name="font">
+      <font>
+       <pointsize>14</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>暂停</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="quitButton">
+     <property name="font">
+      <font>
+       <pointsize>14</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>退出</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QComboBox" name="currentFilepathBox">
+    <property name="geometry">
+     <rect>
+      <x>366</x>
+      <y>460</y>
+      <width>311</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>300</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>500</width>
+      <height>16777215</height>
+     </size>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+   </widget>
+   <widget class="QLabel" name="locationLabel">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>460</y>
+      <width>80</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>80</width>
+      <height>16777215</height>
+     </size>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>数据位置</string>
+    </property>
+   </widget>
+   <widget class="QToolBox" name="fileBox">
+    <property name="geometry">
+     <rect>
+      <x>680</x>
+      <y>460</y>
+      <width>16</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>50</width>
+      <height>16777215</height>
+     </size>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="currentIndex">
+     <number>1</number>
+    </property>
+    <widget class="QWidget" name="page">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>16</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <attribute name="label">
+      <string>Page 1</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="page_2">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>16</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <attribute name="label">
+      <string>Page 2</string>
+     </attribute>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
