@@ -20,10 +20,11 @@ GNU General Public License for more details.
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import numpy as np
 
 
-class RealtimePlotter(object):
+class RealtimePlotter(FigureCanvas):
     '''
     Real-time scrolling multi-plot over time.  Your data-acquisition code should run on its own thread,
     to prevent blocking / slowdown.

@@ -19,7 +19,7 @@ import time
 
 # Simple example with threading
 from dynamic import load_csi_data
-from dynamic.init import RealtimePlotter
+from dynamic.RealtimePlotter import RealtimePlotter
 
 
 class Plotter(RealtimePlotter):

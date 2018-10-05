@@ -3,6 +3,9 @@ from time import sleep
 from static import load_csi_data
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+
+matplotlib.use('Qt5Agg')
 
 
 def run(flag, mode, antenna_tx, antenna_rx, subcarrier_no, filepath):
