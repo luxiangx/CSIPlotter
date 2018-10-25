@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division
 
 import codecs
+from time import sleep
 
 import pandas as pd
 import numpy as np
@@ -145,3 +146,13 @@ def get_scale_csi(dic):
         ret = ret * math.sqrt(dbinv(4.5))
 
     return ret
+
+
+# if __name__ == '__main__':
+#     filename = '/home/luxiang/1.dat'
+#     offset = 0
+#     data, offset = read_bf_file(filename, offset)
+#     while True:
+#         data, offset = read_bf_file(filename, offset)
+#         print(offset)
+#         sleep(1)

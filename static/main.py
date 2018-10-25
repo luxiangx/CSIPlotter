@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    file_data = load_csi_data.read_bf_file('/home/luxiang/linux-80211n-csitool-supplementary/CSI_data/1.dat')
+    file_data = load_csi_data.read_bf_file('/home/luxiang/1.dat')
     n_tx = file_data.loc[0, 'Ntx']
     csi_matrix = np.empty([len(file_data), n_tx, 3, 30], dtype=float)
     n_len = len(file_data)
@@ -12,6 +12,7 @@ if __name__ == '__main__':
         csi = load_csi_data.get_scale_csi(csi_entry)
         for j in range(n_tx):
             csi_matrix[i, :, :, :] = abs(np.squeeze(csi))
-    plt.plot(csi_matrix[:, 2, 2, 1])
+            print(csi_matrix[i, 0, 0, 1])
+    plt.plot(csi_matrix[:, 0, 0, 1])
     plt.show()
     pass
