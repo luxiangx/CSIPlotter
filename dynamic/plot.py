@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''
+"""
 Real-time plot demo using sine waves.
 
 Copyright (C) 2015 Simon D. Levy
@@ -12,16 +12,13 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
-'''
+"""
 
 import numpy as np
-import time
 
 # Simple example with threading
 from dynamic import load_csi_real_time_data
 from dynamic.RealtimePlotter import RealtimePlotter
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 
 filepath = '/home/luxiang/1.dat'
 offset = 0
@@ -35,6 +32,7 @@ class Plotter(RealtimePlotter):
         RealtimePlotter.__init__(self,
                                  yticks=(0, 35, +70),
                                  styles='r-',
+                                 xlabels='Time',
                                  ylabels='Amplitude')
 
         # self.xcurr = 0
@@ -46,13 +44,8 @@ class Plotter(RealtimePlotter):
         self.offset = 0
         self.last_value = None
 
-
-    def getValues(self):
-        start = time.clock()
+    def get_values(self):
         r = self.get_values_by_mode()
-        end = time.clock()
-        # print('time：', end - start)
-        # print(r)
         return r
 
     def get_single_subcarrier_amplitude_value(self):
@@ -133,15 +126,15 @@ class Plotter(RealtimePlotter):
 def get_true_phase(subcarriers):
     import math
     subcarriers = np.angle(subcarriers)
-    Temp = np.zeros(30)
+    temp = np.zeros(30)
     recycle = 0
-    Temp[0] = subcarriers[0]
+    temp[0] = subcarriers[0]
     for t_i in range(1, 30):
         if subcarriers[t_i] - subcarriers[t_i - 1] > math.pi:
             recycle = recycle + 1
-        Temp[t_i] = subcarriers[t_i] - recycle * 2 * math.pi
+        temp[t_i] = subcarriers[t_i] - recycle * 2 * math.pi
 
-    subcarriers = Temp.T
+    subcarriers = temp.T
     k_index_i = np.array([-28, -26, -24, -22, -20, -18, -16, -14, -12, -10, -8, -6, -4, -2, -1,
                           1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 28]).T
     # k_index_i = np.array([-58, -54, -50, -46, -42, -38, -34, -30, -26, -22, -18, -14, -10, -6, -2,

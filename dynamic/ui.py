@@ -5,49 +5,65 @@
 # Created by: PyQt5 UI code generator 5.11.2
 #
 # WARNING! All changes made in this file will be lost!
-import threading
-from time import sleep, clock
 
+import matplotlib
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QSizePolicy
-import matplotlib
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from dynamic.plot import Plotter
 
 matplotlib.use('Qt5Agg')
-# matplotlib.rcParams['backend'] = 'Qt5Agg'
-# matplotlib.rcParams['backend.qt5'] = 'PyQt5'
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-# from dynamic.MyMplCanvas import *
-from dynamic.RealtimePlotter import RealtimePlotter
-from dynamic.plot import Plotter
-from dynamic.run import run
 
 
-class Ui_MainWindow(QtWidgets.QMainWindow):
+class UiMainWindow(QtWidgets.QMainWindow):
     def __init__(self):
-        super(Ui_MainWindow, self).__init__()
-        self.setupUi(self)
-        self.retranslateUi(self)
+        super(UiMainWindow, self).__init__()
+        self.central_widget = None
+        self.vertical_top_layout = None
+        self.vertical_second_layout = None
+        self.horizontal_second_layout = None
+        self.form_third_layout = None
+        self.vertical_third_layout = None
+        self.form_forth_layout = None
+        self.horizontal_forth_layout = None
+        self.gird_fifth_layout = None
+        self.plotter = None
+        self.widget_canvas = None
+        self.mode_label = None
+        self.mode_combobox = None
+        self.data_class_label = None
+        self.antenna_tx_label = None
+        self.data_class_combobox = None
+        self.antenna_tx_combobox = None
+        self.subcarrier_label = None
+        self.antenna_rx_label = None
+        self.antenna_rx_combobox = None
+        self.subcarrier_combobox = None
+        self.data_select_button = None
+        self.file_name = None
+        self.start_button = None
+        self.pause_button = None
+        self.export_data_button = None
+        self.quit_button = None
+        self.msg_text = None
+        self.setup_ui(self)
+        self.retranslate_ui(self)
 
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName("CSI Viewer")
-        MainWindow.resize(800, 600)
-        MainWindow.setFocusPolicy(QtCore.Qt.ClickFocus)
-        self.central_widget = QtWidgets.QWidget(MainWindow)
+    def setup_ui(self, main_window):
+        main_window.setObjectName("CSI Viewer")
+        main_window.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.central_widget = QtWidgets.QWidget(main_window)
         self.central_widget.setObjectName("central_widget")
-        # self.central_widget.setLayout(self.vertical_top_layout)
-        # MainWindow.setAutoFillBackground(True)
         font = QtGui.QFont()
         font.setPointSize(12)
 
         # define layout
         self.vertical_top_layout = QtWidgets.QVBoxLayout(self.central_widget)
-        self.vertical_top_layout.setGeometry(QtCore.QRect(0, 0, 800, 600))
         self.vertical_top_layout.setObjectName("top_layout")
         self.vertical_top_layout.setContentsMargins(10, 10, 10, 10)
 
         self.vertical_second_layout = QtWidgets.QVBoxLayout()
         self.vertical_top_layout.addLayout(self.vertical_second_layout)
-        # self.vertical_second_layout.setGeometry(QtCore.QRect(20, 20, 750, 500))
         self.vertical_second_layout.setObjectName("horizontal_second_layout")
         self.vertical_second_layout.setContentsMargins(10, 10, 10, 10)
 
@@ -78,7 +94,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.gird_fifth_layout = QtWidgets.QGridLayout()
         self.horizontal_forth_layout.addLayout(self.gird_fifth_layout)
-        # self.gird_fifth_layout.setGeometry(QtCore.QRect(450, 470, 100, 130))
         self.gird_fifth_layout.setObjectName("gird_fifth_layout")
         self.gird_fifth_layout.setContentsMargins(10, 10, 10, 10)
 
@@ -90,18 +105,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                                          QtWidgets.QSizePolicy.Expanding)
         self.widget_canvas.updateGeometry()
         self.vertical_second_layout.addWidget(self.widget_canvas)
-
-        # self.fig = Plotter()
-        # self.vertical_top_layout.addWidget(self.fig)
-        # self.mode_label.setObjectName("figure")
-
-        # self.frame = QtWidgets.QFrame()
-        # self.frame.setGeometry(QtCore.QRect(0, 0, 800, 400))
-        # self.frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        # self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
-        # self.frame.setObjectName("frame")
-        # self.vertical_top_layout.addWidget(self.frame)
-        # self.vertical_second_layout.addWidget(self.frame)
 
         self.mode_label = QtWidgets.QLabel()
         self.mode_label.setFont(font)
@@ -198,105 +201,82 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.msg_text.setFont(font)
         self.msg_text.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.msg_text.setObjectName("message")
+        self.msg_text.append('-> 选择文件地址，点击开始按钮画图。')
         self.horizontal_forth_layout.addWidget(self.msg_text)
 
-        MainWindow.setCentralWidget(self.central_widget)
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
-        # self.frame.triggered.connect(run)
+        main_window.setCentralWidget(self.central_widget)
+        self.retranslate_ui(main_window)
 
-    def retranslateUi(self, MainWindow):
+    def retranslate_ui(self, main_window):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "CSI Viewer"))
-        self.flag = False
-        self.mode_label.setText(_translate("MainWindow", "模式："))
-        self.mode_combobox.setItemText(0, _translate("MainWindow", "子载波显示"))
-        self.mode_combobox.setItemText(1, _translate("MainWindow", "天线对显示"))
-        self.mode_combobox.setItemText(2, _translate("MainWindow", "全数据显示"))
+        main_window.setWindowTitle("CSI Viewer")
+        self.mode_label.setText("模式：")
+        self.mode_combobox.setItemText(0, "子载波显示")
+        self.mode_combobox.setItemText(1, "天线对显示")
+        self.mode_combobox.setItemText(2, "全数据显示")
 
-        self.data_class_label.setText(_translate("MainWindow", "数据："))
-        self.data_class_combobox.setItemText(0, _translate("MainWindow", "幅值"))
-        self.data_class_combobox.setItemText(1, _translate("MainWindow", "相位"))
+        self.data_class_label.setText("数据：")
+        self.data_class_combobox.setItemText(0, "幅值")
+        self.data_class_combobox.setItemText(1, "相位")
 
-        self.antenna_tx_label.setText(_translate("MainWindow", "发送天线："))
-        self.antenna_tx_combobox.setItemText(0, _translate("MainWindow", "A"))
-        self.antenna_tx_combobox.setItemText(1, _translate("MainWindow", "B"))
-        self.antenna_tx_combobox.setItemText(2, _translate("MainWindow", "C"))
+        self.antenna_tx_label.setText("发送天线：")
+        self.antenna_tx_combobox.setItemText(0, "A")
+        self.antenna_tx_combobox.setItemText(1, "B")
+        self.antenna_tx_combobox.setItemText(2, "C")
 
-        self.antenna_rx_label.setText(_translate("MainWindow", "接收天线："))
-        self.antenna_rx_combobox.setItemText(0, _translate("MainWindow", "A"))
-        self.antenna_rx_combobox.setItemText(1, _translate("MainWindow", "B"))
-        self.antenna_rx_combobox.setItemText(2, _translate("MainWindow", "C"))
+        self.antenna_rx_label.setText("接收天线：")
+        self.antenna_rx_combobox.setItemText(0, "A")
+        self.antenna_rx_combobox.setItemText(1, "B")
+        self.antenna_rx_combobox.setItemText(2, "C")
 
-        self.subcarrier_label.setText(_translate("MainWindow", "子载波编号："))
-        self.subcarrier_combobox.setItemText(0, _translate("MainWindow", "1"))
-        self.subcarrier_combobox.setItemText(1, _translate("MainWindow", "2"))
-        self.subcarrier_combobox.setItemText(2, _translate("MainWindow", "3"))
-        self.subcarrier_combobox.setItemText(3, _translate("MainWindow", "4"))
-        self.subcarrier_combobox.setItemText(4, _translate("MainWindow", "5"))
-        self.subcarrier_combobox.setItemText(5, _translate("MainWindow", "6"))
-        self.subcarrier_combobox.setItemText(6, _translate("MainWindow", "7"))
-        self.subcarrier_combobox.setItemText(7, _translate("MainWindow", "8"))
-        self.subcarrier_combobox.setItemText(8, _translate("MainWindow", "9"))
-        self.subcarrier_combobox.setItemText(9, _translate("MainWindow", "10"))
-        self.subcarrier_combobox.setItemText(10, _translate("MainWindow", "11"))
-        self.subcarrier_combobox.setItemText(11, _translate("MainWindow", "12"))
-        self.subcarrier_combobox.setItemText(12, _translate("MainWindow", "13"))
-        self.subcarrier_combobox.setItemText(13, _translate("MainWindow", "14"))
-        self.subcarrier_combobox.setItemText(14, _translate("MainWindow", "15"))
-        self.subcarrier_combobox.setItemText(15, _translate("MainWindow", "16"))
-        self.subcarrier_combobox.setItemText(16, _translate("MainWindow", "17"))
-        self.subcarrier_combobox.setItemText(17, _translate("MainWindow", "18"))
-        self.subcarrier_combobox.setItemText(18, _translate("MainWindow", "19"))
-        self.subcarrier_combobox.setItemText(19, _translate("MainWindow", "20"))
-        self.subcarrier_combobox.setItemText(20, _translate("MainWindow", "21"))
-        self.subcarrier_combobox.setItemText(21, _translate("MainWindow", "22"))
-        self.subcarrier_combobox.setItemText(22, _translate("MainWindow", "23"))
-        self.subcarrier_combobox.setItemText(23, _translate("MainWindow", "24"))
-        self.subcarrier_combobox.setItemText(24, _translate("MainWindow", "25"))
-        self.subcarrier_combobox.setItemText(25, _translate("MainWindow", "26"))
-        self.subcarrier_combobox.setItemText(26, _translate("MainWindow", "27"))
-        self.subcarrier_combobox.setItemText(27, _translate("MainWindow", "28"))
-        self.subcarrier_combobox.setItemText(28, _translate("MainWindow", "29"))
-        self.subcarrier_combobox.setItemText(29, _translate("MainWindow", "30"))
-        self.data_select_button.setText(_translate("MainWindow", "数据选择"))
+        self.subcarrier_label.setText("子载波编号：")
+        for i in range(30):
+            self.subcarrier_combobox.setItemText(i, str(i + 1))
+
+        self.data_select_button.setText("数据选择")
         self.data_select_button.clicked.connect(self.openfile)
-        self.file_name.setText(_translate("MainWindow", ""))
-        self.start_button.setText(_translate("MainWindow", "开始"))
+        self.file_name.setText("")
+        self.start_button.setText("开始")
         self.start_button.clicked.connect(self.start)
-        self.pause_button.setText(_translate("MainWindow", "暂停"))
+        self.pause_button.setText("暂停")
         self.pause_button.clicked.connect(self.pause)
-        self.export_data_button.setText(_translate("MainWindow", "导出数据"))
+        self.export_data_button.setText("导出数据")
         self.export_data_button.clicked.connect(self.export_data)
-        self.quit_button.setText(_translate("MainWindow", "退出"))
+        self.quit_button.setText("退出")
         self.quit_button.clicked.connect(self.quit)
 
     def openfile(self):
         _translate = QtCore.QCoreApplication.translate
-        openfile_name = QFileDialog.getOpenFileName(self, 'open file',
-                                                    '/home/luxiang/',
-                                                    'Dat files(*.dat)')
-        self.file_name.setText(_translate("MainWindow", openfile_name[0]))
+        openfile_name = QFileDialog.getOpenFileName(self.main_window,
+                                                    "open file",
+                                                    "/home/luxiang/",
+                                                    "Dat files(*.dat)")
+
+        self.file_name.setText(openfile_name[0])
 
     def start(self):
-        self.plotter.flag = True
+        self.plotter.pause_flag = False
+        self.setting()
+        self.plotter.start()
+        self.msg_text.append('-> 画图中...')
+
+    def setting(self):
         self.widget_canvas.tx = self.antenna_tx_combobox.currentText()
         self.widget_canvas.rx = self.antenna_rx_combobox.currentText()
         self.widget_canvas.subcarrier_no = self.subcarrier_combobox.currentText()
         self.widget_canvas.mode = self.mode_combobox.currentText()
         self.widget_canvas.data = self.data_class_combobox.currentText()
-        self.msg_text.append('start')
-        self.plotter.start()
-        self.msg_text.append('run')
 
     def pause(self):
-        self.plotter.pause = True
-        self.msg_text.append('pause')
+        self.msg_text.append('-> 暂停画图！')
+        self.plotter.pause_flag = True
+        self.plotter.puase()
 
     def export_data(self):
         pass
 
-    def quit(self):
+    @staticmethod
+    def quit():
         sys.exit(0)
 
 
@@ -305,7 +285,7 @@ if __name__ == "__main__":
 
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
+    ui = UiMainWindow()
+    ui.setup_ui(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())

@@ -1,4 +1,4 @@
-'''
+"""
 Real-time scrolling multi-plot over time.
 
 Requires: matplotlib
@@ -16,31 +16,27 @@ This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
-'''
-import threading
-from time import sleep, clock
+"""
 
 import matplotlib
+import matplotlib.animation as animation
+import numpy as np
+from matplotlib.figure import Figure
 
 matplotlib.use('Qt5Agg')
-import matplotlib.animation as animation
-# from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import numpy as np
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-from PyQt5 import QtCore, QtWidgets
 
 
 class RealtimePlotter(object):
-    '''
+    """
     Real-time scrolling multi-plot over time.  Your data-acquisition code should run on its own thread,
     to prevent blocking / slowdown.
-    '''
+    """
     ani = None
 
-    def __init__(self, size=200,
-                 window_name=None, styles=None, ylabels=None, yticks=[], legend=[], interval_msec=10):
-        '''
+    def __init__(self, size=200, window_name=None,
+                 styles=None, xlabels=None, ylabels=None,
+                 yticks=None, legend=None, interval=1):
+        """
         Initializes a multi-plot with specified Y-axis limits as a list of pairs; e.g.,
         [(-1,+1), (0.,5)].  Optional parameters are:
 
@@ -52,21 +48,13 @@ class RealtimePlotter(object):
         interval_msec    animation update in milliseconds
 
         For overlaying plots, use a tuple for styles; e.g., styles=[('r','g'), 'b']
-        '''
-        # MyMplCanvas.__init__(self)
-        # Row count is provided by Y-axis limits
+        """
 
-        # Bozo filters
-        # styles = self._check_param(nrows, styles, 'styles', 'b-')
-        # ylabels = self._check_param(nrows, ylabels, 'ylabels', '')
-        # yticks = self._check_param(nrows, yticks, 'yticks', [])
-        # self.legends = self._check_param(nrows, legends, 'legends', [])
-        self.fig = Figure(figsize=(5, 4), dpi=100)
+        self.fig = Figure(figsize=(10, 9), dpi=100, tight_layout=True)
         # X values are arbitrary ascending; Y is initially zero
         self.x = np.arange(0, size)
         y = np.zeros(size)
-        self.flag = False
-        self.pause = False
+        self.pause_flag = False
         self.last_line = None
         self.axes = None
 
@@ -79,18 +67,18 @@ class RealtimePlotter(object):
         style = styles
         ax = self.axes
         # legend = [[]]
-        stylesForRow = style if type(style) == tuple else [style]
-        for k in range(len(stylesForRow)):
-            label = legend[k] if legend and len(legend) > 0 else ''
-            self.lines.append(ax.plot(self.x, y, stylesForRow[k], animated=True)[0])
+        styles_for_row = style if type(style) == tuple else [style]
+        for k in range(len(styles_for_row)):
+            self.lines.append(ax.plot(self.x, y, styles_for_row[k], animated=True)[0])
         if legend is not None and len(legend) > 0:
             ax.legend()
 
         # Add properties as specified
-        ax.set_ylabel(ylabels)
+        ax.set_xlabel(xlabels, fontsize=15)
+        ax.set_ylabel(ylabels, fontsize=15)
 
         # Set axis limits
-        ax.set_xlim((0, size))
+        ax.set_xlim(0, size)
         # [ax.set_ylim(ylim) for ax, ylim in zip(self.axes, ylims)]
 
         # Set ticks and gridlines
@@ -98,28 +86,27 @@ class RealtimePlotter(object):
         ax.yaxis.grid(True)
 
         # XXX Hide X axis ticks and labels for now
-        ax.xaxis.set_visible(False)
+        # ax.xaxis.set_visible(False)
         # Allow interval specification
-        self.interval_msec = interval_msec
+        self.interval_msec = interval
 
     def start(self):
-
-        """
-        Starts the realtime plotter.
-        """
 
         if RealtimePlotter.ani is None:
             RealtimePlotter.ani = animation.FuncAnimation(self.fig, self._animate, interval=self.interval_msec,
                                                           blit=True)
         else:
-            pass
+            RealtimePlotter.ani.event_source.start()
 
-    def getValues(self):
+    @staticmethod
+    def puase():
+        RealtimePlotter.ani.event_source.stop()
+
+    def get_values(self):
 
         """
         Override this method to return actual Y values at current time.
         """
-
         return None
 
     def _axis_check(self, axid):
@@ -143,10 +130,10 @@ class RealtimePlotter(object):
     def rolly(cls, line, newval):
         RealtimePlotter.roll(line.get_ydata, line.set_ydata, line, newval)
 
-    def _animate(self, t):
-        if self.pause is True:
+    def _animate(self, _):
+        if self.pause_flag is True:
             return self.last_line
-        values = self.getValues()
+        values = self.get_values()
         yvals = values
         RealtimePlotter.rolly(self.lines[0], yvals)
         self.last_line = self.lines
