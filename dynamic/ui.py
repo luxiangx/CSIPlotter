@@ -7,6 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 import matplotlib
+import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog, QSizePolicy
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -95,7 +96,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.gird_fifth_layout = QtWidgets.QGridLayout()
         self.horizontal_forth_layout.addLayout(self.gird_fifth_layout)
         self.gird_fifth_layout.setObjectName("gird_fifth_layout")
-        self.gird_fifth_layout.setContentsMargins(10, 10, 10, 10)
+        # self.gird_fifth_layout.setContentsMargins(0, 10, 10, 10)
 
         # add widgets into layout
 
@@ -235,7 +236,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
 
         self.data_select_button.setText("数据选择")
         self.data_select_button.clicked.connect(self.openfile)
-        self.file_name.setText("")
+        self.file_name.setText("/home/luxiang/1.dat")
         self.start_button.setText("开始")
         self.start_button.clicked.connect(self.start)
         self.pause_button.setText("暂停")
@@ -247,9 +248,8 @@ class UiMainWindow(QtWidgets.QMainWindow):
 
     def openfile(self):
         _translate = QtCore.QCoreApplication.translate
-        openfile_name = QFileDialog.getOpenFileName(self.main_window,
-                                                    "open file",
-                                                    "/home/luxiang/",
+        openfile_name = QFileDialog.getOpenFileName(self.central_widget,
+                                                    "open file", "/home/luxiang/",
                                                     "Dat files(*.dat)")
 
         self.file_name.setText(openfile_name[0])
@@ -257,7 +257,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
     def start(self):
         self.plotter.pause_flag = False
         self.setting()
-        self.plotter.start()
+        self.plotter.start(self.file_name.text().split("/")[-1])
         self.msg_text.append('-> 画图中...')
 
     def setting(self):
@@ -268,6 +268,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.widget_canvas.data = self.data_class_combobox.currentText()
 
     def pause(self):
+        os.system("sudo kill -s 9 `ps -ef|grep '../netlink/log_to_file_1'|grep -v sudo|grep -v grep|awk '{print $2}'`")
         self.msg_text.append('-> 暂停画图！')
         self.plotter.pause_flag = True
         self.plotter.puase()

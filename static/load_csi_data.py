@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division
 
 import codecs
+from time import clock
 
 import pandas as pd
 import numpy as np
@@ -145,3 +146,10 @@ def get_scale_csi(dic):
         ret = ret * math.sqrt(dbinv(4.5))
 
     return ret
+
+
+if __name__ == '__main__':
+    filename = '/home/luxiang/1.dat'
+    t1 = clock()
+    data = read_bf_file(filename)
+    print(clock() - t1)

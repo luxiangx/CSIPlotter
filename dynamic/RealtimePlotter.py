@@ -17,6 +17,8 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 """
+import subprocess
+import threading
 
 import matplotlib
 import matplotlib.animation as animation
@@ -90,8 +92,9 @@ class RealtimePlotter(object):
         # Allow interval specification
         self.interval_msec = interval
 
-    def start(self):
-
+    def start(self, filename):
+        t = threading.Thread(target=log(filename))
+        t.start()
         if RealtimePlotter.ani is None:
             RealtimePlotter.ani = animation.FuncAnimation(self.fig, self._animate, interval=self.interval_msec,
                                                           blit=True)
@@ -140,7 +143,13 @@ class RealtimePlotter(object):
         return self.lines
 
 
-def _update():
-    from time import sleep
-    while True:
-        sleep(.001)
+# def _update():
+#     from time import sleep
+#     while True:
+#         sleep(.001)
+
+
+def log(filename):
+    subprocess.call(
+        "cd ~; sudo ./linux-80211n-csitool-supplementary/netlink/log_to_file_1 " + filename + "&",
+        shell=True)
