@@ -12,7 +12,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFileDialog, QSizePolicy
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from dynamic.plot import Plotter
+
+from dynamic.RealtimePlotter import RealtimePlotter
 
 matplotlib.use('Qt5Agg')
 
@@ -95,7 +96,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.vertical_forth_layout.setObjectName("vertical_forth_layout")
         self.vertical_forth_layout.setContentsMargins(10, 5, 10, 10)
 
-        self.plotter = Plotter()
+        self.plotter = RealtimePlotter()
         self.widget_canvas = FigureCanvas(self.plotter.fig)
         self.widget_canvas.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
                                          QtWidgets.QSizePolicy.Expanding)
