@@ -9,6 +9,7 @@
 import matplotlib
 import os
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFileDialog, QSizePolicy
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from dynamic.plot import Plotter
@@ -17,6 +18,7 @@ matplotlib.use('Qt5Agg')
 
 
 class UiMainWindow(QtWidgets.QMainWindow):
+
     def __init__(self):
         super(UiMainWindow, self).__init__()
         self.central_widget = None
@@ -26,8 +28,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.form_third_layout = None
         self.vertical_third_layout = None
         self.form_forth_layout = None
-        self.horizontal_forth_layout = None
-        self.gird_fifth_layout = None
+        self.vertical_forth_layout = None
         self.plotter = None
         self.widget_canvas = None
         self.mode_label = None
@@ -44,8 +45,9 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.file_name = None
         self.start_button = None
         self.pause_button = None
-        self.export_data_button = None
         self.quit_button = None
+        self.main_splitter = None
+        self.sub_splitter = None
         self.msg_text = None
         self.setup_ui(self)
         self.retranslate_ui(self)
@@ -71,34 +73,27 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.horizontal_second_layout = QtWidgets.QHBoxLayout()
         self.vertical_top_layout.addLayout(self.horizontal_second_layout)
         self.horizontal_second_layout.setObjectName("horizontal_second_layout")
-        self.horizontal_second_layout.setContentsMargins(10, 10, 10, 10)
+        self.horizontal_second_layout.setContentsMargins(10, 10, 0, 10)
 
         self.form_third_layout = QtWidgets.QFormLayout()
         self.horizontal_second_layout.addLayout(self.form_third_layout)
         self.form_third_layout.setObjectName("form_third_layout")
-        self.form_third_layout.setContentsMargins(10, 10, 10, 10)
+        self.form_third_layout.setContentsMargins(10, 10, 0, 10)
 
         self.vertical_third_layout = QtWidgets.QVBoxLayout()
         self.horizontal_second_layout.addLayout(self.vertical_third_layout)
         self.vertical_third_layout.setObjectName("vertical_third_layout")
-        self.vertical_third_layout.setContentsMargins(10, 10, 10, 10)
+        self.vertical_third_layout.setContentsMargins(10, 10, 0, 0)
 
         self.form_forth_layout = QtWidgets.QFormLayout()
         self.vertical_third_layout.addLayout(self.form_forth_layout)
         self.form_forth_layout.setObjectName("form_forth_layout")
-        self.form_forth_layout.setContentsMargins(10, 10, 10, 10)
+        self.form_forth_layout.setContentsMargins(10, 0, 10, 10)
 
-        self.horizontal_forth_layout = QtWidgets.QHBoxLayout()
-        self.vertical_third_layout.addLayout(self.horizontal_forth_layout)
-        self.horizontal_forth_layout.setObjectName("horizontal_forth_layout")
-        self.horizontal_forth_layout.setContentsMargins(10, 10, 10, 10)
-
-        self.gird_fifth_layout = QtWidgets.QGridLayout()
-        self.horizontal_forth_layout.addLayout(self.gird_fifth_layout)
-        self.gird_fifth_layout.setObjectName("gird_fifth_layout")
-        # self.gird_fifth_layout.setContentsMargins(0, 10, 10, 10)
-
-        # add widgets into layout
+        self.vertical_forth_layout = QtWidgets.QVBoxLayout()
+        self.vertical_third_layout.addLayout(self.vertical_forth_layout)
+        self.vertical_forth_layout.setObjectName("vertical_forth_layout")
+        self.vertical_forth_layout.setContentsMargins(10, 5, 10, 10)
 
         self.plotter = Plotter()
         self.widget_canvas = FigureCanvas(self.plotter.fig)
@@ -172,7 +167,6 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.form_forth_layout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.data_select_button)
         self.file_name = QtWidgets.QLineEdit()
         self.file_name.setFont(font)
-        self.file_name.setText('/home/luxiang/1.dat')
         self.file_name.setInputMethodHints(QtCore.Qt.ImhHiddenText)
         self.file_name.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.file_name.setObjectName("file_name")
@@ -181,29 +175,34 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.start_button = QtWidgets.QPushButton()
         self.start_button.setFont(font)
         self.start_button.setObjectName("start_button")
-        self.gird_fifth_layout.addWidget(self.start_button, 1, 1)
 
         self.pause_button = QtWidgets.QPushButton()
         self.pause_button.setFont(font)
-        self.pause_button.setObjectName("pauseButton")
-        self.gird_fifth_layout.addWidget(self.pause_button, 1, 2)
-
-        self.export_data_button = QtWidgets.QPushButton()
-        self.export_data_button.setFont(font)
-        self.export_data_button.setObjectName("exportDataButton")
-        self.gird_fifth_layout.addWidget(self.export_data_button, 2, 1)
+        self.pause_button.setObjectName("pause_button")
 
         self.quit_button = QtWidgets.QPushButton()
         self.quit_button.setFont(font)
-        self.quit_button.setObjectName("quitButton")
-        self.gird_fifth_layout.addWidget(self.quit_button, 2, 2)
+        self.quit_button.setObjectName("quit_button")
 
         self.msg_text = QtWidgets.QTextBrowser()
         self.msg_text.setFont(font)
         self.msg_text.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.msg_text.setObjectName("message")
-        self.msg_text.append('-> 选择文件地址，点击开始按钮画图。')
-        self.horizontal_forth_layout.addWidget(self.msg_text)
+        self.msg_text.append("-> <font color='red'>注意选择发送天线不要超过最大发送天线编号！</font>")
+        self.msg_text.append("-> <font color='red'>选择数据存放地址，点击开始按钮画图。</font>")
+
+        self.main_splitter = QtWidgets.QSplitter(Qt.Horizontal)
+        self.sub_splitter = QtWidgets.QSplitter(Qt.Vertical)
+        self.sub_splitter.addWidget(self.start_button)
+        self.sub_splitter.addWidget(self.pause_button)
+        self.sub_splitter.addWidget(self.quit_button)
+        self.sub_splitter.setHandleWidth(8)
+        self.main_splitter.addWidget(self.sub_splitter)
+        self.main_splitter.addWidget(self.msg_text)
+        self.main_splitter.setStretchFactor(0, 1)
+        self.main_splitter.setStretchFactor(1, 100)
+
+        self.vertical_forth_layout.addWidget(self.main_splitter)
 
         main_window.setCentralWidget(self.central_widget)
         self.retranslate_ui(main_window)
@@ -235,46 +234,49 @@ class UiMainWindow(QtWidgets.QMainWindow):
             self.subcarrier_combobox.setItemText(i, str(i + 1))
 
         self.data_select_button.setText("数据选择")
-        self.data_select_button.clicked.connect(self.openfile)
-        self.file_name.setText("/home/luxiang/1.dat")
+        self.data_select_button.clicked.connect(self.open_file)
+        self.file_name.setText("/home/luxiang/linux-80211n-csitool-supplementary/data/1.dat")
         self.start_button.setText("开始")
         self.start_button.clicked.connect(self.start)
         self.pause_button.setText("暂停")
         self.pause_button.clicked.connect(self.pause)
-        self.export_data_button.setText("导出数据")
-        self.export_data_button.clicked.connect(self.export_data)
         self.quit_button.setText("退出")
         self.quit_button.clicked.connect(self.quit)
 
-    def openfile(self):
-        _translate = QtCore.QCoreApplication.translate
-        openfile_name = QFileDialog.getOpenFileName(self.central_widget,
-                                                    "open file", "/home/luxiang/",
-                                                    "Dat files(*.dat)")
+    def open_file(self):
+        open_file_name = QFileDialog.getOpenFileName(self.central_widget,
+                                                     "open file", "/home/luxiang/",
+                                                     "Dat files(*.dat)")
 
-        self.file_name.setText(openfile_name[0])
+        self.file_name.setText(open_file_name[0])
 
     def start(self):
-        self.plotter.pause_flag = False
         self.setting()
-        self.plotter.start(self.file_name.text().split("/")[-1])
+        self.plotter.filename = self.file_name.text()
+        self.plotter.pause_flag = False
+        self.plotter.start()
         self.msg_text.append('-> 画图中...')
 
     def setting(self):
-        self.widget_canvas.tx = self.antenna_tx_combobox.currentText()
-        self.widget_canvas.rx = self.antenna_rx_combobox.currentText()
-        self.widget_canvas.subcarrier_no = self.subcarrier_combobox.currentText()
-        self.widget_canvas.mode = self.mode_combobox.currentText()
-        self.widget_canvas.data = self.data_class_combobox.currentText()
+        self.plotter.mode = self.mode_combobox.currentText()
+        self.plotter.data = self.data_class_combobox.currentText()
+        if self.plotter.data == "相位":
+            self.plotter.axes.set_ylabel("Phase")
+            self.plotter.axes.set_ylim(-3.14, 3.14)
+            self.plotter.axes.yaxis.set_ticks([-3.14, 0, +3.14])
+        else:
+            self.plotter.axes.set_ylabel("Amplitude")
+            self.plotter.axes.set_ylim(0, 70)
+            self.plotter.axes.yaxis.set_ticks([0, 35, 70])
+        self.plotter.tx = self.antenna_tx_combobox.currentText()
+        self.plotter.rx = self.antenna_rx_combobox.currentText()
+        self.plotter.subcarrier_no = self.subcarrier_combobox.currentText()
 
     def pause(self):
         os.system("sudo kill -s 9 `ps -ef|grep '../netlink/log_to_file_1'|grep -v sudo|grep -v grep|awk '{print $2}'`")
         self.msg_text.append('-> 暂停画图！')
         self.plotter.pause_flag = True
         self.plotter.puase()
-
-    def export_data(self):
-        pass
 
     @staticmethod
     def quit():

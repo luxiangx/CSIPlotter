@@ -35,7 +35,7 @@ class RealtimePlotter(object):
     """
     ani = None
 
-    def __init__(self, size=200, window_name=None,
+    def __init__(self, size=200,
                  styles=None, xlabels=None, ylabels=None,
                  yticks=None, legend=None, interval=1):
         """
@@ -51,8 +51,8 @@ class RealtimePlotter(object):
 
         For overlaying plots, use a tuple for styles; e.g., styles=[('r','g'), 'b']
         """
-
-        self.fig = Figure(figsize=(10, 9), dpi=100, tight_layout=True)
+        self.filename = ""
+        self.fig = Figure(figsize=(10, 20), dpi=100, tight_layout=True)
         # X values are arbitrary ascending; Y is initially zero
         self.x = np.arange(0, size)
         y = np.zeros(size)
@@ -61,8 +61,6 @@ class RealtimePlotter(object):
         self.axes = None
 
         self.axes = self.fig.add_subplot(111)
-        if window_name:
-            self.fig.canvas.set_window_title(window_name)
 
         # Create lines
         self.lines = []
@@ -92,11 +90,12 @@ class RealtimePlotter(object):
         # Allow interval specification
         self.interval_msec = interval
 
-    def start(self, filename):
-        t = threading.Thread(target=log(filename))
+    def start(self):
+        t = threading.Thread(target=self.log())
         t.start()
+        self.fig.canvas.flush_events()
         if RealtimePlotter.ani is None:
-            RealtimePlotter.ani = animation.FuncAnimation(self.fig, self._animate, interval=self.interval_msec,
+            RealtimePlotter.ani = animation.FuncAnimation(self.fig, self.animate, interval=self.interval_msec,
                                                           blit=True)
         else:
             RealtimePlotter.ani.event_source.start()
@@ -106,7 +105,6 @@ class RealtimePlotter(object):
         RealtimePlotter.ani.event_source.stop()
 
     def get_values(self):
-
         """
         Override this method to return actual Y values at current time.
         """
@@ -133,7 +131,7 @@ class RealtimePlotter(object):
     def rolly(cls, line, newval):
         RealtimePlotter.roll(line.get_ydata, line.set_ydata, line, newval)
 
-    def _animate(self, _):
+    def animate(self, _):
         if self.pause_flag is True:
             return self.last_line
         values = self.get_values()
@@ -142,14 +140,9 @@ class RealtimePlotter(object):
         self.last_line = self.lines
         return self.lines
 
-
-# def _update():
-#     from time import sleep
-#     while True:
-#         sleep(.001)
-
-
-def log(filename):
-    subprocess.call(
-        "cd ~; sudo ./linux-80211n-csitool-supplementary/netlink/log_to_file_1 " + filename + "&",
-        shell=True)
+    def log(self):
+        subprocess.call(
+            "cd " + self.filename[:self.filename.find(self.filename.split("/")[-1])] +
+            "; sudo /home/luxiang/linux-80211n-csitool-supplementary/netlink/log_to_file_1 " +
+            self.filename.split("/")[-1] + "&",
+            shell=True)

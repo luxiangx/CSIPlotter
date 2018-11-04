@@ -20,7 +20,6 @@ import numpy as np
 from dynamic import load_csi_real_time_data
 from dynamic.RealtimePlotter import RealtimePlotter
 
-filepath = '/home/luxiang/1.dat'
 offset = 0
 amti = 0
 angle = 0
@@ -30,7 +29,7 @@ class Plotter(RealtimePlotter):
 
     def __init__(self):
         RealtimePlotter.__init__(self,
-                                 yticks=(0, 35, +70),
+                                 yticks=(0, 35, 70),
                                  styles='r-',
                                  xlabels='Time',
                                  ylabels='Amplitude')
@@ -49,7 +48,7 @@ class Plotter(RealtimePlotter):
         return r
 
     def get_single_subcarrier_amplitude_value(self):
-        file_data, self.offset = load_csi_real_time_data.read_bf_file(filepath, self.offset)
+        file_data, self.offset = load_csi_real_time_data.read_bf_file(self.filename, self.offset)
         if len(file_data) > 0:
             csi_entry = file_data.loc[len(file_data) - 1]
             csi = load_csi_real_time_data.get_scale_csi(csi_entry)
@@ -64,7 +63,13 @@ class Plotter(RealtimePlotter):
         pass
 
     def get_single_subcarrier_phase_value(self):
-        pass
+        file_data, self.offset = load_csi_real_time_data.read_bf_file(self.filename, self.offset)
+        if len(file_data) > 0:
+            csi_entry = file_data.loc[len(file_data) - 1]
+            csi = load_csi_real_time_data.get_scale_csi(csi_entry)
+            return get_true_phase(csi[ord(self.tx) - ord('A')][ord(self.rx) - ord('A')][:], int(self.subcarrier_no))
+        else:
+            return self.last_value
 
     def get_antenna_pair_phase_value(self):
         pass
@@ -73,28 +78,9 @@ class Plotter(RealtimePlotter):
         pass
 
     def get_values_by_mode(self):
-        # from time import sleep
-        # global offset
-        # global amti
-        # global angle
-        # # global filepath
-        # file_data, offset = load_csi_real_time_data.read_bf_file(
-        #     '/home/luxiang/linux-80211n-csitool-supplementary/data/1.dat', offset)
-        # len = np.size(file_data)
-        #
-        # print('len：', len)
-        # if len >= 1:
-        #     csi_entry = file_data.loc[0]
-        #     csi = load_csi_real_time_data.get_scale_csi(csi_entry)
-        #     # print(csi)
-        #     # a, j, k = np.shape(csi)
-        #     csi_1 = csi[0][0][:]
-        #     amti = abs(np.squeeze(csi[0][0][23]))
-        #     angle = get_true_phase(csi_1.T)
-        # sleep(.01)
-        # return amti
 
         if self.data == '幅值':
+            self.yticks = (-3.14, 0, +3.14)
             if self.mode == '子载波显示':
                 self.last_value = self.get_single_subcarrier_amplitude_value()
                 return self.last_value
@@ -123,7 +109,7 @@ class Plotter(RealtimePlotter):
 #         sleep(.001)
 
 
-def get_true_phase(subcarriers):
+def get_true_phase(subcarriers, index):
     import math
     subcarriers = np.angle(subcarriers)
     temp = np.zeros(30)
@@ -143,7 +129,7 @@ def get_true_phase(subcarriers):
     b = np.mean(subcarriers)
     new_one_road_subcarrier_30_angle = subcarriers - a * k_index_i - b
 
-    return new_one_road_subcarrier_30_angle[23]
+    return new_one_road_subcarrier_30_angle[index]
 
 # def plot():
 #     global offset
