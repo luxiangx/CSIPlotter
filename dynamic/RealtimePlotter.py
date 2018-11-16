@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Real-time scrolling multi-plot over time.
 
@@ -24,10 +25,10 @@ import matplotlib
 import matplotlib.animation as animation
 import numpy as np
 from matplotlib.figure import Figure
-
 from dynamic import load_csi_real_time_data
 
 matplotlib.use('Qt5Agg')
+
 
 
 class RealtimePlotter(object):
@@ -51,13 +52,14 @@ class RealtimePlotter(object):
 
         For overlaying plots, use a tuple for styles; e.g., styles=[('r','g'), 'b']
         """
+        self.error_no = 0
         self.size = 200
         self.styles = 'r-'
         self.xlabels = "Time"
         self.ylabels = "Amplitude"
         self.yticks = (0, 35, 70)
         self.legend = None
-        self.interval = 1
+        self.interval_msec = 100000
         self.tx = 'A'
         self.rx = 'A'
         self.subcarrier_no = '1'
@@ -72,7 +74,6 @@ class RealtimePlotter(object):
         y = np.zeros(self.size)
         self.pause_flag = False
         self.last_line = None
-        self.axes = None
 
         self.axes = self.fig.add_subplot(111)
 
@@ -97,25 +98,24 @@ class RealtimePlotter(object):
 
         # Set ticks and gridlines
         ax.yaxis.set_ticks(self.yticks)
+
         ax.yaxis.grid(True)
+
+        # set unvisible ################################################################################################
+        ax.yaxis.set_visible(True)
 
         # XXX Hide X axis ticks and labels for now
         # ax.xaxis.set_visible(False)
         # Allow interval specification
-        self.interval_msec = self.interval
 
     def start(self):
         t = threading.Thread(target=self.log())
         t.start()
-        self.fig.canvas.flush_events()
-        if RealtimePlotter.ani is None:
-            RealtimePlotter.ani = animation.FuncAnimation(self.fig, self.animate, interval=self.interval_msec,
-                                                          blit=True)
-        else:
-            RealtimePlotter.ani.event_source.start()
+        RealtimePlotter.ani = animation.FuncAnimation(self.fig, self.animate, interval=self.interval_msec,
+                                                      blit=True)
 
     @staticmethod
-    def puase():
+    def pause():
         RealtimePlotter.ani.event_source.stop()
 
     def get_values(self):
@@ -164,7 +164,10 @@ class RealtimePlotter(object):
         if len(file_data) > 0:
             csi_entry = file_data.loc[len(file_data) - 1]
             csi = load_csi_real_time_data.get_scale_csi(csi_entry)
-            return abs(np.squeeze(csi[ord(self.tx) - ord('A')][ord(self.rx) - ord('A')][int(self.subcarrier_no)]))
+            try:
+                return abs(np.squeeze(csi[self.tx][self.rx][self.subcarrier_no]))
+            except IndexError:
+                self.error_no = 1
         else:
             return self.last_value
 
@@ -179,7 +182,7 @@ class RealtimePlotter(object):
         if len(file_data) > 0:
             csi_entry = file_data.loc[len(file_data) - 1]
             csi = load_csi_real_time_data.get_scale_csi(csi_entry)
-            return get_true_phase(csi[ord(self.tx) - ord('A')][ord(self.rx) - ord('A')][:], int(self.subcarrier_no))
+            return get_true_phase(csi[self.tx][self.rx][:], self.subcarrier_no)
         else:
             return self.last_value
 
@@ -195,7 +198,13 @@ class RealtimePlotter(object):
             self.yticks = (-3.14, 0, +3.14)
             if self.mode == '子载波显示':
                 self.last_value = self.get_single_subcarrier_amplitude_value()
-                return self.last_value
+                if self.error_no == 1:
+                    if self.tx == 1:
+                        self.fig.text(0.4, 0.5, 'DO NOT HAVE TX_B', fontsize=25, color='R')
+                    else:
+                        self.fig.text(0.4, 0.5, 'DO NOT HAVE TX_C', fontsize=25, color='R')
+                else:
+                    return self.last_value
             elif self.mode == '天线对显示':
                 return self.get_antenna_pair_amplitude_value()
             elif self.mode == '全数据显示':
