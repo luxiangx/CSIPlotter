@@ -2,8 +2,6 @@
 
 import matplotlib
 import os
-from time import clock
-from time import sleep
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QTextCursor
@@ -165,11 +163,13 @@ class UiMainWindow(QtWidgets.QMainWindow):
 
         self.msg_text = QtWidgets.QTextBrowser()
         self.msg_text.setFont(font_12)
+        self.msg_text.textChanged.connect(self.auto_scroll)
+        # self.msg_text.cursorPositionChanged.connect(self.auto_scroll)
         self.msg_text.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.msg_text.setObjectName("message")
-        self.msg_text.append("-> <font color='red'>Do not exceed the maximum transmit antenna number!</font>")
-        self.msg_text.append("-> <font color='red'>Press the save-path button to select the filepath"
-                             " and click the start button to show figture!</font>")
+        self.msg_text.append("-> Do not exceed the maximum transmit antenna number!")
+        self.msg_text.append("-> Press the save-path button to select the filepath"
+                             " and click the start button to show figture!")
 
         self.main_splitter = QtWidgets.QSplitter(Qt.Horizontal)
         self.sub_splitter = QtWidgets.QSplitter(Qt.Vertical)
@@ -273,7 +273,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         if self.plotter.start_flag is False:
             return
         os.system("sudo kill -s 9 `ps -ef|grep '../netlink/log_to_file'|grep -v sudo|grep -v grep|awk '{print $2}'`")
-        self.msg_text.append('-> Stop showing！')
+        self.msg_text.append('-> Stop showing!')
         self.plotter.pause_flag = True
         self.plotter.pause()
         self.plotter.start_flag = False
@@ -281,7 +281,8 @@ class UiMainWindow(QtWidgets.QMainWindow):
     def add_msg(self, msg):
         self.msg_text.append(msg)
 
-
+    def auto_scroll(self):
+        self.msg_text.moveCursor(QTextCursor.End)
 
     @staticmethod
     def quit():
