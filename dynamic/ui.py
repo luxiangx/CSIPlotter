@@ -2,8 +2,11 @@
 
 import matplotlib
 import os
+from time import clock
+from time import sleep
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import QFileDialog, QSizePolicy
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from dynamic.RealtimePlotter import RealtimePlotter
@@ -34,7 +37,6 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.main_splitter, self.sub_splitter = None, None
 
         self.msg_text = None
-        self.start_flag = False
         self.shown_speed = 1
         self.setup_ui(self)
         self.retranslate_ui(self)
@@ -44,6 +46,10 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.central_widget = QtWidgets.QWidget(main_window)
         font_12 = QtGui.QFont()
         font_12.setPointSize(12)
+        font_13 = QtGui.QFont()
+        font_13.setPointSize(13)
+        font_14 = QtGui.QFont()
+        font_14.setPointSize(13.5)
         font_15 = QtGui.QFont()
         font_15.setPointSize(15)
 
@@ -76,7 +82,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.vertical_text_layout.setContentsMargins(10, 5, 10, 10)
 
         # add widget into layouts
-        self.plotter = RealtimePlotter()
+        self.plotter = RealtimePlotter(self)
         self.widget_canvas = FigureCanvas(self.plotter.fig)
         self.vertical_main_layout.addWidget(self.widget_canvas)
 
@@ -141,7 +147,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.form_mode_layout.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.shown_speed_combobox)
 
         self.data_select_button = QtWidgets.QPushButton()
-        self.data_select_button.setFont(font_12)
+        self.data_select_button.setFont(font_14)
         self.form_file_layout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.data_select_button)
         self.file_name = QtWidgets.QLineEdit()
         self.file_name.setFont(font_12)
@@ -161,8 +167,9 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.msg_text.setFont(font_12)
         self.msg_text.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.msg_text.setObjectName("message")
-        self.msg_text.append("-> <font color='red'>注意选择发送天线不要超过最大发送天线编号！</font>")
-        self.msg_text.append("-> <font color='red'>选择数据存放地址，点击开始按钮画图。</font>")
+        self.msg_text.append("-> <font color='red'>Do not exceed the maximum transmit antenna number!</font>")
+        self.msg_text.append("-> <font color='red'>Press the save-path button to select the filepath"
+                             " and click the start button to show figture!</font>")
 
         self.main_splitter = QtWidgets.QSplitter(Qt.Horizontal)
         self.sub_splitter = QtWidgets.QSplitter(Qt.Vertical)
@@ -182,44 +189,44 @@ class UiMainWindow(QtWidgets.QMainWindow):
     def retranslate_ui(self, main_window):
         _translate = QtCore.QCoreApplication.translate
         main_window.setWindowTitle("CSI Viewer")
-        self.mode_label.setText("模式：")
-        self.mode_combobox.setItemText(0, "子载波显示")
-        self.mode_combobox.setItemText(1, "天线对显示")
-        self.mode_combobox.setItemText(2, "全数据显示")
+        self.mode_label.setText("mode：")
+        self.mode_combobox.setItemText(0, "subcarrier")
+        self.mode_combobox.setItemText(1, "antenna pair")
+        self.mode_combobox.setItemText(2, "all data")
 
-        self.data_class_label.setText("数据：")
-        self.data_class_combobox.setItemText(0, "幅值")
-        self.data_class_combobox.setItemText(1, "相位")
+        self.data_class_label.setText("type：")
+        self.data_class_combobox.setItemText(0, "amplitude")
+        self.data_class_combobox.setItemText(1, "phase")
 
-        self.antenna_tx_label.setText("发送天线：")
+        self.antenna_tx_label.setText("TX：")
         self.antenna_tx_combobox.setItemText(0, "A")
         self.antenna_tx_combobox.setItemText(1, "B")
         self.antenna_tx_combobox.setItemText(2, "C")
 
-        self.antenna_rx_label.setText("接收天线：")
+        self.antenna_rx_label.setText("RX：")
         self.antenna_rx_combobox.setItemText(0, "A")
         self.antenna_rx_combobox.setItemText(1, "B")
         self.antenna_rx_combobox.setItemText(2, "C")
 
-        self.subcarrier_label.setText("子载波编号：")
+        self.subcarrier_label.setText("NO：")
         for i in range(30):
             self.subcarrier_combobox.setItemText(i, str(i + 1))
 
-        self.shown_speed_label.setText("显示速率:")
+        self.shown_speed_label.setText("rate:")
         self.shown_speed_combobox.setItemText(0, "1")
         self.shown_speed_combobox.setItemText(1, "10")
         self.shown_speed_combobox.setItemText(2, "100")
         self.shown_speed_combobox.setItemText(3, "1000")
         self.shown_speed_combobox.setItemText(4, "10000")
 
-        self.data_select_button.setText("数据选择")
+        self.data_select_button.setText("save-path")
         self.data_select_button.clicked.connect(self.open_file)
         self.file_name.setText("/home/luxiang/linux-80211n-csitool-supplementary/data/1.dat")
-        self.start_button.setText("开始")
+        self.start_button.setText("start")
         self.start_button.clicked.connect(self.start)
-        self.pause_button.setText("暂停")
+        self.pause_button.setText("pause")
         self.pause_button.clicked.connect(self.pause)
-        self.quit_button.setText("退出")
+        self.quit_button.setText("quit")
         self.quit_button.clicked.connect(self.quit)
 
     def open_file(self):
@@ -231,24 +238,23 @@ class UiMainWindow(QtWidgets.QMainWindow):
         print(self.speed_bar.value())
 
     def start(self):
-        if self.start_flag is True:
+        if self.plotter.start_flag is True:
             return
         self.setting()
-        self.plotter.filename = self.file_name.text()
         self.plotter.pause_flag = False
+        self.plotter.start_flag = True
         self.plotter.start()
-        self.msg_text.append('-> 画图中...')
-        self.start_flag = True
+        self.msg_text.append('-> Showing...')
 
     def setting(self):
         self.vertical_main_layout.removeWidget(self.widget_canvas)
-        self.plotter = RealtimePlotter()
+        self.plotter = RealtimePlotter(self)
         self.widget_canvas = FigureCanvas(self.plotter.fig)
         self.vertical_main_layout.addWidget(self.widget_canvas)
         self.plotter.mode = self.mode_combobox.currentText()
         self.plotter.data = self.data_class_combobox.currentText()
 
-        if self.plotter.data == "相位":
+        if self.plotter.data == "phase":
             self.plotter.axes.set_ylabel("Phase")
             self.plotter.axes.set_ylim(-3.14, 3.14)
             self.plotter.axes.yaxis.set_ticks([-3.14, 0, +3.14])
@@ -261,18 +267,25 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.plotter.rx = ord(self.antenna_rx_combobox.currentText()) - ord('A')
         self.plotter.subcarrier_no = int(self.subcarrier_combobox.currentText()) - 1
         self.plotter.interval_msec = int(self.shown_speed_combobox.currentText())
+        self.plotter.filename = self.file_name.text()
 
     def pause(self):
-        if self.start_flag is False:
+        if self.plotter.start_flag is False:
             return
-        os.system("sudo kill -s 9 `ps -ef|grep '../netlink/log_to_file_1'|grep -v sudo|grep -v grep|awk '{print $2}'`")
-        self.msg_text.append('-> 暂停画图！')
+        os.system("sudo kill -s 9 `ps -ef|grep '../netlink/log_to_file'|grep -v sudo|grep -v grep|awk '{print $2}'`")
+        self.msg_text.append('-> Stop showing！')
         self.plotter.pause_flag = True
         self.plotter.pause()
-        self.start_flag = False
+        self.plotter.start_flag = False
+
+    def add_msg(self, msg):
+        self.msg_text.append(msg)
+
+
 
     @staticmethod
     def quit():
+        os.system("sudo kill -s 9 `ps -ef|grep '../netlink/log_to_file'|grep -v sudo|grep -v grep|awk '{print $2}'`")
         sys.exit(0)
 
 

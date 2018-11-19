@@ -18,9 +18,9 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 """
+import os
 import subprocess
 import threading
-
 import matplotlib
 import matplotlib.animation as animation
 import numpy as np
@@ -30,29 +30,21 @@ from dynamic import load_csi_real_time_data
 matplotlib.use('Qt5Agg')
 
 
-
 class RealtimePlotter(object):
     """
     Real-time scrolling multi-plot over time.  Your data-acquisition code should run on its own thread,
     to prevent blocking / slowdown.
     """
     ani = None
+    error_no = 0
+    """
+    1: 发射天线选择错误，没有天线B
+    2: 发射天线选择错误，没有天线C
+    3: 
+    """
 
-    def __init__(self):
-        """
-        Initializes a multi-plot with specified Y-axis limits as a list of pairs; e.g.,
-        [(-1,+1), (0.,5)].  Optional parameters are:
-
-        size             size of display (X axis) in arbitrary time steps
-        window_name      name to display at the top of the figure
-        styles           plot styles (e.g., 'b-', 'r.'; default='b-')
-        yticks           Y-axis tick / grid positions
-        legends          list of legends for each subplot
-        interval_msec    animation update in milliseconds
-
-        For overlaying plots, use a tuple for styles; e.g., styles=[('r','g'), 'b']
-        """
-        self.error_no = 0
+    def __init__(self, ui):
+        self.ui = ui
         self.size = 200
         self.styles = 'r-'
         self.xlabels = "Time"
@@ -63,8 +55,8 @@ class RealtimePlotter(object):
         self.tx = 'A'
         self.rx = 'A'
         self.subcarrier_no = '1'
-        self.mode = '子载波显示'
-        self.data = '幅值'
+        self.mode = 'subcarrier'
+        self.data = 'amplitude'
         self.offset = 0
         self.last_value = None
         self.filename = ""
@@ -73,6 +65,7 @@ class RealtimePlotter(object):
         self.x = np.arange(0, self.size)
         y = np.zeros(self.size)
         self.pause_flag = False
+        self.start_flag = False
         self.last_line = None
 
         self.axes = self.fig.add_subplot(111)
@@ -81,7 +74,7 @@ class RealtimePlotter(object):
         self.lines = []
         style = self.styles
         ax = self.axes
-        # legend = [[]]
+
         styles_for_row = style if type(style) == tuple else [style]
         for k in range(len(styles_for_row)):
             self.lines.append(ax.plot(self.x, y, styles_for_row[k], animated=True)[0])
@@ -94,14 +87,10 @@ class RealtimePlotter(object):
 
         # Set axis limits
         ax.set_xlim(0, self.size)
-        # [ax.set_ylim(ylim) for ax, ylim in zip(self.axes, ylims)]
 
         # Set ticks and gridlines
         ax.yaxis.set_ticks(self.yticks)
-
         ax.yaxis.grid(True)
-
-        # set unvisible ################################################################################################
         ax.yaxis.set_visible(True)
 
         # XXX Hide X axis ticks and labels for now
@@ -111,22 +100,110 @@ class RealtimePlotter(object):
     def start(self):
         t = threading.Thread(target=self.log())
         t.start()
-        RealtimePlotter.ani = animation.FuncAnimation(self.fig, self.animate, interval=self.interval_msec,
-                                                      blit=True)
-
-    @staticmethod
-    def pause():
-        RealtimePlotter.ani.event_source.stop()
+        RealtimePlotter.ani = animation.FuncAnimation(self.fig, self.animate, blit=True,
+                                                      interval=self.interval_msec)
 
     def get_values(self):
         r = self.get_values_by_mode()
         return r
 
-    def _axis_check(self, axid):
+    def get_values_by_mode(self):
+        if self.data == 'amplitude':
+            self.yticks = (-3.14, 0, +3.14)
+            if self.mode == 'subcarrier':
+                self.last_value = self.get_single_subcarrier_amplitude_value()
+                if RealtimePlotter.error_no == 1:
+                    self.stop_log()
+                    self.fig.text(0.4, 0.6, 'DO NOT HAVE TX_B!', fontsize=25, color='R')
+                elif RealtimePlotter.error_no == 2:
+                    self.stop_log()
+                    self.fig.text(0.4, 0.6, 'DO NOT HAVE TX_C!', fontsize=25, color='R')
+                else:
+                    return self.last_value
+            elif self.mode == 'antenna pair':
+                return self.get_antenna_pair_amplitude_value()
+            elif self.mode == 'all data':
+                return self.get_all_data_amplitude_value()
+            else:
+                pass
 
-        nrows = len(self.lines)
-        if axid < 0 or axid >= nrows:
-            raise Exception('Axis index must be in [0,%d)' % nrows)
+        elif self.data == 'phase':
+            if self.mode == 'subcarrier':
+                self.last_value = self.get_single_subcarrier_phase_value()
+                if RealtimePlotter.error_no == 1:
+                    self.stop_log()
+                    self.fig.text(0.4, 0.7, 'DO NOT HAVE TX_B!', fontsize=25, color='R')
+                elif RealtimePlotter.error_no == 2:
+                    self.stop_log()
+                    self.fig.text(0.4, 0.7, 'DO NOT HAVE TX_C!', fontsize=25, color='R')
+                else:
+                    return self.last_value
+            elif self.mode == 'antenna pair':
+                return self.get_antenna_pair_phase_value()
+            elif self.mode == 'all data':
+                return self.get_all_data_phase_value()
+            else:
+                pass
+        self.reset_error_no()
+
+    def animate(self, _):
+        if self.pause_flag is True:
+            return self.last_line
+        values = self.get_values()
+        yvals = values
+        RealtimePlotter.rolly(self.lines[0], yvals)
+        self.last_line = self.lines
+        return self.lines
+
+    def log(self):
+        subprocess.call(
+            "cd " + self.filename[:self.filename.find(self.filename.split("/")[-1])] +
+            "; sudo /home/luxiang/linux-80211n-csitool-supplementary/netlink/log_to_file " +
+            self.filename.split("/")[-1] + "&", shell=True)
+
+    def stop_log(self):
+        os.system("sudo kill -s 9 `ps -ef|grep '../netlink/log_to_file'|grep -v sudo|grep -v grep|awk '{print $2}'`")
+        self.ui.add_msg('-> Stop showing!')
+        self.pause_flag = True
+        self.pause()
+        self.start_flag = False
+
+    def get_single_subcarrier_amplitude_value(self):
+        file_data, self.offset = load_csi_real_time_data.read_bf_file(self.filename, self.offset)
+        if len(file_data) > 0:
+            csi_entry = file_data.loc[len(file_data) - 1]
+            csi = load_csi_real_time_data.get_scale_csi(csi_entry)
+            try:
+                return abs(np.squeeze(csi[self.tx][self.rx][self.subcarrier_no]))
+            except IndexError:
+                RealtimePlotter.error_no = 1 if self.tx == 1 else 2
+        else:
+            return self.last_value
+
+    def get_antenna_pair_amplitude_value(self):
+        pass
+
+    def get_all_data_amplitude_value(self):
+        pass
+
+    def get_single_subcarrier_phase_value(self):
+        file_data, self.offset = load_csi_real_time_data.read_bf_file(self.filename, self.offset)
+        if len(file_data) > 0:
+            csi_entry = file_data.loc[len(file_data) - 1]
+            csi = load_csi_real_time_data.get_scale_csi(csi_entry)
+            try:
+                return self.get_true_phase(csi[self.tx][self.rx][:], self.subcarrier_no)
+            except IndexError:
+                RealtimePlotter.error_no = 1 if self.tx == 1 else 2
+                self.pause()
+        else:
+            return self.last_value
+
+    def get_antenna_pair_phase_value(self):
+        pass
+
+    def get_all_data_phase_value(self):
+        pass
 
     @classmethod
     def roll(cls, getter, setter, line, newval):
@@ -143,103 +220,32 @@ class RealtimePlotter(object):
     def rolly(cls, line, newval):
         RealtimePlotter.roll(line.get_ydata, line.set_ydata, line, newval)
 
-    def animate(self, _):
-        if self.pause_flag is True:
-            return self.last_line
-        values = self.get_values()
-        yvals = values
-        RealtimePlotter.rolly(self.lines[0], yvals)
-        self.last_line = self.lines
-        return self.lines
+    @staticmethod
+    def pause():
+        RealtimePlotter.ani.event_source.stop()
 
-    def log(self):
-        subprocess.call(
-            "cd " + self.filename[:self.filename.find(self.filename.split("/")[-1])] +
-            "; sudo /home/luxiang/linux-80211n-csitool-supplementary/netlink/log_to_file_1 " +
-            self.filename.split("/")[-1] + "&",
-            shell=True)
+    @staticmethod
+    def reset_error_no():
+        RealtimePlotter.error_no = 0
 
-    def get_single_subcarrier_amplitude_value(self):
-        file_data, self.offset = load_csi_real_time_data.read_bf_file(self.filename, self.offset)
-        if len(file_data) > 0:
-            csi_entry = file_data.loc[len(file_data) - 1]
-            csi = load_csi_real_time_data.get_scale_csi(csi_entry)
-            try:
-                return abs(np.squeeze(csi[self.tx][self.rx][self.subcarrier_no]))
-            except IndexError:
-                self.error_no = 1
-        else:
-            return self.last_value
+    @staticmethod
+    def get_true_phase(subcarriers, index):
+        import math
+        subcarriers = np.angle(subcarriers)
+        temp = np.zeros(30)
+        recycle = 0
+        temp[0] = subcarriers[0]
+        for t_i in range(1, 30):
+            if subcarriers[t_i] - subcarriers[t_i - 1] > math.pi:
+                recycle = recycle + 1
+            temp[t_i] = subcarriers[t_i] - recycle * 2 * math.pi
 
-    def get_antenna_pair_amplitude_value(self):
-        pass
-
-    def get_all_data_amplitude_value(self):
-        pass
-
-    def get_single_subcarrier_phase_value(self):
-        file_data, self.offset = load_csi_real_time_data.read_bf_file(self.filename, self.offset)
-        if len(file_data) > 0:
-            csi_entry = file_data.loc[len(file_data) - 1]
-            csi = load_csi_real_time_data.get_scale_csi(csi_entry)
-            return get_true_phase(csi[self.tx][self.rx][:], self.subcarrier_no)
-        else:
-            return self.last_value
-
-    def get_antenna_pair_phase_value(self):
-        pass
-
-    def get_all_data_phase_value(self):
-        pass
-
-    def get_values_by_mode(self):
-
-        if self.data == '幅值':
-            self.yticks = (-3.14, 0, +3.14)
-            if self.mode == '子载波显示':
-                self.last_value = self.get_single_subcarrier_amplitude_value()
-                if self.error_no == 1:
-                    if self.tx == 1:
-                        self.fig.text(0.4, 0.5, 'DO NOT HAVE TX_B', fontsize=25, color='R')
-                    else:
-                        self.fig.text(0.4, 0.5, 'DO NOT HAVE TX_C', fontsize=25, color='R')
-                else:
-                    return self.last_value
-            elif self.mode == '天线对显示':
-                return self.get_antenna_pair_amplitude_value()
-            elif self.mode == '全数据显示':
-                return self.get_all_data_amplitude_value()
-            else:
-                pass
-        elif self.data == '相位':
-            if self.mode == '子载波显示':
-                return self.get_single_subcarrier_phase_value()
-            elif self.mode == '天线对显示':
-                return self.get_antenna_pair_phase_value()
-            elif self.mode == '全数据显示':
-                return self.get_all_data_phase_value()
-            else:
-                pass
-
-
-def get_true_phase(subcarriers, index):
-    import math
-    subcarriers = np.angle(subcarriers)
-    temp = np.zeros(30)
-    recycle = 0
-    temp[0] = subcarriers[0]
-    for t_i in range(1, 30):
-        if subcarriers[t_i] - subcarriers[t_i - 1] > math.pi:
-            recycle = recycle + 1
-        temp[t_i] = subcarriers[t_i] - recycle * 2 * math.pi
-
-    subcarriers = temp.T
-    k_index_i = np.array([-28, -26, -24, -22, -20, -18, -16, -14, -12, -10, -8, -6, -4, -2, -1,
-                          1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 28]).T
-    # k_index_i = np.array([-58, -54, -50, -46, -42, -38, -34, -30, -26, -22, -18, -14, -10, -6, -2,
-    #                       2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58]).T
-    a = (subcarriers[29] - subcarriers[0]) / 56
-    b = np.mean(subcarriers)
-    new_one_road_subcarrier_30_angle = subcarriers - a * k_index_i - b
-
-    return new_one_road_subcarrier_30_angle[index]
+        subcarriers = temp.T
+        k_index_i = np.array([-28, -26, -24, -22, -20, -18, -16, -14, -12, -10, -8, -6, -4, -2, -1,
+                              1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 28]).T
+        # k_index_i = np.array([-58, -54, -50, -46, -42, -38, -34, -30, -26, -22, -18, -14, -10, -6, -2,
+        #                       2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58]).T
+        a = (subcarriers[29] - subcarriers[0]) / 56
+        b = np.mean(subcarriers)
+        new_one_road_subcarrier_30_angle = subcarriers - a * k_index_i - b
+        return new_one_road_subcarrier_30_angle[index]
