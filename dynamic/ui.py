@@ -92,6 +92,7 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.mode_combobox.addItem("")
         self.mode_combobox.addItem("")
         self.mode_combobox.addItem("")
+        self.mode_combobox.addItem("")
         self.form_mode_layout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.mode_combobox)
 
         self.data_class_label = QtWidgets.QLabel()
@@ -164,11 +165,10 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.msg_text = QtWidgets.QTextBrowser()
         self.msg_text.setFont(font_12)
         self.msg_text.textChanged.connect(self.auto_scroll)
-        # self.msg_text.cursorPositionChanged.connect(self.auto_scroll)
         self.msg_text.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.msg_text.setObjectName("message")
-        self.msg_text.append("-> Do not exceed the maximum transmit antenna number!")
-        self.msg_text.append("-> Press the save-path button to select the filepath"
+        self.msg_text.append("<font color = 'black'>-> Set the right transmit antennas number!")
+        self.msg_text.append("<font color = 'black'>-> Press the save-path button to select the filepath"
                              " and click the start button to show figture!")
 
         self.main_splitter = QtWidgets.QSplitter(Qt.Horizontal)
@@ -190,9 +190,10 @@ class UiMainWindow(QtWidgets.QMainWindow):
         _translate = QtCore.QCoreApplication.translate
         main_window.setWindowTitle("CSI Viewer")
         self.mode_label.setText("mode：")
-        self.mode_combobox.setItemText(0, "subcarrier")
-        self.mode_combobox.setItemText(1, "antenna pair")
-        self.mode_combobox.setItemText(2, "all data")
+        self.mode_combobox.setItemText(0, "rssi")
+        self.mode_combobox.setItemText(1, "subcarrier")
+        self.mode_combobox.setItemText(2, "antenna pair")
+        self.mode_combobox.setItemText(3, "all csi")
 
         self.data_class_label.setText("type：")
         self.data_class_combobox.setItemText(0, "amplitude")
@@ -241,10 +242,9 @@ class UiMainWindow(QtWidgets.QMainWindow):
         if self.plotter.start_flag is True:
             return
         self.setting()
-        self.plotter.pause_flag = False
         self.plotter.start_flag = True
         self.plotter.start()
-        self.msg_text.append('-> Showing...')
+        self.msg_text.append("<font color = 'black'>-> Showing...")
 
     def setting(self):
         self.vertical_main_layout.removeWidget(self.widget_canvas)
@@ -253,28 +253,49 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.vertical_main_layout.addWidget(self.widget_canvas)
         self.plotter.mode = self.mode_combobox.currentText()
         self.plotter.data = self.data_class_combobox.currentText()
-
-        if self.plotter.data == "phase":
-            self.plotter.axes.set_ylabel("Phase")
-            self.plotter.axes.set_ylim(-3.14, 3.14)
-            self.plotter.axes.yaxis.set_ticks([-3.14, 0, +3.14])
-        else:
-            self.plotter.axes.set_ylabel("Amplitude")
-            self.plotter.axes.set_ylim(0, 70)
-            self.plotter.axes.yaxis.set_ticks([0, 35, 70])
-
         self.plotter.tx = ord(self.antenna_tx_combobox.currentText()) - ord('A')
         self.plotter.rx = ord(self.antenna_rx_combobox.currentText()) - ord('A')
         self.plotter.subcarrier_no = int(self.subcarrier_combobox.currentText()) - 1
         self.plotter.interval_msec = int(self.shown_speed_combobox.currentText())
         self.plotter.filename = self.file_name.text()
 
+        if self.plotter.mode == "subcarrier":
+            if self.plotter.data == "phase":
+                self.plotter.axes.set_ylabel("Phase")
+                self.plotter.axes.set_ylim(-3.14, 3.14)
+                self.plotter.axes.yaxis.set_ticks([-3.14, 0, +3.14])
+            elif self.plotter.data == "amplitude":
+                self.plotter.axes.set_ylabel("Amplitude")
+                self.plotter.axes.set_ylim(0, 70)
+                self.plotter.axes.yaxis.set_ticks([0, 35, 70])
+
+        elif self.plotter.mode == "antenna pair":
+            self.plotter.axes.set_ylabel("Subcarriers")
+            self.plotter.axes.set_ylim(0, 29.5)
+            self.plotter.axes.yaxis.grid(False)
+            self.plotter.axes.yaxis.set_ticks([0, 5, 10, 15, 20, 25])
+        elif self.plotter.mode == "all csi":
+            self.plotter.axes.set_ylabel("Subcarriers")
+            self.plotter.axes.yaxis.grid(False)
+            if self.plotter.tx == 0:
+                self.plotter.axes.set_ylim(0, 89.5)
+                self.plotter.axes.yaxis.set_ticks([0, 20, 40, 60])
+            elif self.plotter.tx == 1:
+                self.plotter.axes.set_ylim(0, 179.5)
+                self.plotter.axes.yaxis.set_ticks([0, 30, 60, 90, 120, 150])
+            elif self.plotter.tx == 2:
+                self.plotter.axes.set_ylim(0, 269.5)
+                self.plotter.axes.yaxis.set_ticks([0, 30, 60, 90, 120, 150, 180, 210, 240])
+        elif self.plotter.mode == "rssi":
+            self.plotter.axes.set_ylabel("RSSI")
+            self.plotter.axes.set_ylim(-90, 0)
+            self.plotter.axes.yaxis.set_ticks([-90, -60, -30, 0])
+
     def pause(self):
         if self.plotter.start_flag is False:
             return
         os.system("sudo kill -s 9 `ps -ef|grep '../netlink/log_to_file'|grep -v sudo|grep -v grep|awk '{print $2}'`")
         self.msg_text.append('-> Stop showing!')
-        self.plotter.pause_flag = True
         self.plotter.pause()
         self.plotter.start_flag = False
 
