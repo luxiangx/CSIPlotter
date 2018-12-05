@@ -231,9 +231,8 @@ class UiMainWindow(QtWidgets.QMainWindow):
         self.quit_button.clicked.connect(self.quit)
 
     def open_file(self):
-        open_file_name = QFileDialog.getOpenFileName(self.central_widget, "open file", "/home/luxiang/",
-                                                     "dat files(*.dat)")
-        self.file_name.setText(open_file_name[0])
+        directory = QFileDialog.getExistingDirectory(self, "selcet the data file path", "/home/luxiang/")
+        self.file_name.setText(directory + '/')
 
     def speed_val(self):
         print(self.speed_bar.value())

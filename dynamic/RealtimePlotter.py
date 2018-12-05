@@ -1,31 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-Real-time scrolling multi-plot over time.
 
-Requires: matplotlib
-          numpy
-
-Adapted from example in http://stackoverflow.com/questions/8955869/why-is-plotting-with-matplotlib-so-slow
-
-Copyright (C) 2015 Simon D. Levy
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-"""
 import os
 import subprocess
 import threading
 import matplotlib
 import matplotlib.animation as animation
 import numpy as np
-from PyQt5 import Qt
-from PyQt5.QtGui import QColor
 from matplotlib.figure import Figure
 from dynamic import load_csi_real_time_data
 
@@ -33,10 +13,6 @@ matplotlib.use('Qt5Agg')
 
 
 class RealtimePlotter(object):
-    """
-    Real-time scrolling multi-plot over time.  Your data-acquisition code should run on its own thread,
-    to prevent blocking / slowdown.
-    """
     ani = None
     error_no = 0
     """
@@ -76,7 +52,7 @@ class RealtimePlotter(object):
         self.lines = []
         self.antenna_image = np.zeros((30, self.size))
         self.antenna_images = []
-        self.all_image = np.zeros((270, self.size))
+        self.all_image = None
         self.all_images = []
         style = self.styles
         ax = self.axes
@@ -99,10 +75,6 @@ class RealtimePlotter(object):
         ax.yaxis.set_ticks(self.yticks)
         ax.yaxis.grid(True)
         ax.yaxis.set_visible(True)
-
-        # XXX Hide X axis ticks and labels for now
-        # ax.xaxis.set_visible(False)
-        # Allow interval specification
 
     def start(self):
         t = threading.Thread(target=self.log())
@@ -127,36 +99,37 @@ class RealtimePlotter(object):
             RealtimePlotter.ani = animation.FuncAnimation(self.fig, self.animate_antenna,
                                                           blit=True, interval=self.interval_msec)
         elif self.mode == "all csi":
+            if self.tx == 0:
+                self.all_image = np.zeros((90, self.size))
+            elif self.tx == 1:
+                self.all_image = np.zeros((180, self.size))
+            else:
+                self.all_image = np.zeros((270, self.size))
             self.all_images.append(self.axes.imshow(self.all_image, cmap='jet', aspect='auto',
                                                     vmin=v_min, vmax=v_max, animated=True))
             RealtimePlotter.ani = animation.FuncAnimation(self.fig, self.animate_all,
                                                           blit=True, interval=self.interval_msec)
 
     def get_values(self):
-        print(1)
-        r = self.get_values_by_mode()
-        return r
+        if self.start_flag:
+            r = self.get_values_by_mode()
+            return r
+        return None
 
     def check_error(self):
 
         if RealtimePlotter.error_no == 1:
             self.stop_log()
             self.ui.msg_text.append("<font color = 'red'>-> Do not have TX B!")
-            return False
         elif RealtimePlotter.error_no == 2:
             self.stop_log()
             self.ui.msg_text.append("<font color = 'red'>-> Do not have TX C!")
-            return False
         elif RealtimePlotter.error_no == 3:
             self.stop_log()
             self.ui.msg_text.append("<font color = 'red'>-> Please select TX B!")
-            return False
         elif RealtimePlotter.error_no == 4:
             self.stop_log()
             self.ui.msg_text.append("<font color = 'red'>-> Please select TX C!")
-            return False
-        else:
-            return True
 
     def get_values_by_mode(self):
         if self.mode == 'rssi':
@@ -167,53 +140,40 @@ class RealtimePlotter(object):
                 self.last_plot_data = self.get_single_subcarrier_amplitude_value()
                 if self.check_error_flag:
                     self.check_error_flag = False
-                    if self.check_error():
-                        return self.last_plot_data
-                else:
-                    return self.last_plot_data
+                    self.check_error()
+                return self.last_plot_data
             elif self.data == 'phase':
                 self.last_plot_data = self.get_single_subcarrier_phase_value()
                 if self.check_error_flag:
                     self.check_error_flag = False
-                    if self.check_error():
-                        return self.last_plot_data
-                else:
-                    return self.last_plot_data
+                    self.check_error()
+                return self.last_plot_data
         elif self.mode == 'antenna pair':
             if self.data == 'amplitude':
                 self.last_plot_data = self.get_antenna_pair_amplitude_value()
                 if self.check_error_flag:
                     self.check_error_flag = False
-                    if self.check_error():
-                        return self.last_plot_data
-                else:
-                    return self.last_plot_data
+                    self.check_error()
+                return self.last_plot_data
             elif self.data == 'phase':
                 self.last_plot_data = self.get_antenna_pair_phase_value()
                 if self.check_error_flag:
                     self.check_error_flag = False
-                    if self.check_error():
-                        return self.last_plot_data
-                else:
-                    return self.last_plot_data
+                    self.check_error()
+                return self.last_plot_data
         elif self.mode == 'all csi':
             if self.data == 'amplitude':
                 self.last_plot_data = self.get_all_data_amplitude_value()
                 if self.check_error_flag:
                     self.check_error_flag = False
-                    if self.check_error():
-                        return self.last_plot_data
-                else:
-                    return self.last_plot_data
+                    self.check_error()
+                return self.last_plot_data
             elif self.data == 'phase':
                 self.last_plot_data = self.get_all_data_phase_value()
                 if self.check_error_flag:
                     self.check_error_flag = False
-                    if self.check_error():
-                        return self.last_plot_data
-                else:
-                    return self.last_plot_data
-        self.reset()
+                    self.check_error()
+                return self.last_plot_data
 
     def animate_rssi(self, _):
         values = self.get_values()
@@ -251,6 +211,7 @@ class RealtimePlotter(object):
         self.ui.add_msg('-> Stop showing!')
         self.pause()
         self.start_flag = False
+        self.reset()
 
     def get_rssi_value(self):
         file_data, self.offset = load_csi_real_time_data.read_bf_file(self.filename, self.offset)
@@ -290,7 +251,7 @@ class RealtimePlotter(object):
             n_size = np.size(csi_amplitude)
             n_c = 90 * (self.tx + 1)
             if n_size == n_c:
-                self.last_value = np.reshape(csi_amplitude, (n_size))
+                self.last_value = np.reshape(csi_amplitude, n_size)
             elif n_size < n_c:
                 RealtimePlotter.error_no = 1 if self.tx == 1 else 2
             elif n_size > n_c:
@@ -328,7 +289,7 @@ class RealtimePlotter(object):
             n_size = np.size(csi_phase)
             n_c = 90 * (self.tx + 1)
             if n_size == n_c:
-                self.last_value = np.reshape(csi_phase, (n_size))
+                self.last_value = np.reshape(csi_phase, n_size)
             elif n_size < n_c:
                 RealtimePlotter.error_no = 1 if self.tx == 1 else 2
             elif n_size > n_c:
@@ -349,9 +310,9 @@ class RealtimePlotter(object):
         data[-1] = newval
         line.set_ydata(data)
 
-    def pause(self):
+    @staticmethod
+    def pause():
         RealtimePlotter.ani.event_source.stop()
-        self.check_error_flag = True
 
     @staticmethod
     def reset():
@@ -400,6 +361,6 @@ class RealtimePlotter(object):
                         temp[t_i] = csi_phase[i][j][t_i] - recycle * 2 * math.pi
                     csi_phase[i][j] = temp.T
                     a = (csi_phase[i][j][29] - csi_phase[i][j][0]) / 56
-                    b = np.mean(csi_phase)
+                    b = np.mean(csi_phase[i][j])
                     true_phase[0, (90 * i + 30 * j):(90 * i + 30 * (j + 1))] = csi_phase[i][j] - a * k_index_i - b
             return true_phase
