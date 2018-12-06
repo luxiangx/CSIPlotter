@@ -10,7 +10,7 @@ Plot the CSI value in real time to analyze data changing and facilitate CSI rese
 # How to use it?
 The mian UI with 4 parts is shown as below.
 
-！[ui](https://github.com/luxiangx/CSIPlotter/blob/master/readme_img/ui.png)
+![ui](https://github.com/luxiangx/CSIPlotter/blob/master/readme_img/ui.png)
 
 ## UI Introduction
 - 1 figure block
