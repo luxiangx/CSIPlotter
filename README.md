@@ -1,10 +1,10 @@
 # What is main function of the software?
 Plot the CSI value in real time to analyze data changing and facilitate CSI research.
 The running figures is shown as below.
-![]()
-![]()
-![]()
-![]()
+![rssi](https://github.com/luxiangx/CSIPlotter/blob/master/images/rssi.png)
+![csi](https://github.com/luxiangx/CSIPlotter/blob/master/images/subcarrier.png)
+![csi pair](https://github.com/luxiangx/CSIPlotter/blob/master/images/antenna.png)
+![all csi](https://github.com/luxiangx/CSIPlotter/blob/master/images/all.png)
 
 # What do you need to do before using?
 - OS -- Ubuntu 12.04 or 14.04
