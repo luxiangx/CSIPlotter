@@ -56,5 +56,5 @@ The log procedure will still run in backend. And when you run it again, it dose 
 2. Due to my poor coding, the program is  inefficient. Some laptops with old hardware may not use it.
 
 -------
-The software is free to use for your research. If you find some bugs or want to join this project to improve the usability of the software. Welcome to contact me.
+The software is free to use for your research. If you find some bugs or want to join this project to improve the usability of the software, welcome to contact me.
 My email is <luxiangisme@gmail.com>. 
