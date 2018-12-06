@@ -1,5 +1,10 @@
 # What is main function of the software?
 Plot the CSI value in real time to analyze data changing and facilitate CSI research.
+The running figures is shown as below.
+![]()
+![]()
+![]()
+![]()
 
 # What do you need to do before using?
 - OS -- Ubuntu 12.04 or 14.04
