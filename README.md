@@ -15,7 +15,7 @@ The running figures is shown as below.
 # How to use it?
 The mian UI with 4 parts is shown as below.
 
-![ui](https://github.com/luxiangx/CSIPlotter/blob/master/readme_img/ui.png)
+![ui](https://github.com/luxiangx/CSIPlotter/blob/master/images/ui.png)
 
 ## UI Introduction
 - 1 figure block
