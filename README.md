@@ -41,10 +41,10 @@ NO combobox contains 30 value from 1 to 30 represented the 30 subcarriers number
 Select the data path and file name.
 - 4 control and message block
 
-To start to show or pause and quit. Message box shows the running state.
+To start or pause or quit. Message box shows the running state.
 
 #### steps to use it
-1. Set the injection and monitor mode, ping is ok but I recommend this method.
+1. Set the injection and monitor mode. Ping is ok but I recommend this method.
 2. Run ui.py.
 3. Click the save-path button to select the saving directory and edit the file name.
 4. Set the showing mode as you want.
