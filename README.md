@@ -11,6 +11,7 @@ The running figures is shown as below.
 - CSI tool -- Intel 5300
 - sudo command -- password free
 - python3 and some libs like matplotlib, QT5
+- **fix the RealtimePlotter.py line 205 to your logging program path**
 
 ### How to use it?
 The mian UI with 4 parts is shown as below.
