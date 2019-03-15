@@ -1,23 +1,24 @@
-# What is main function of the software?
+### What is main function of the software?
 Plot the CSI value in real time to analyze data changing and facilitate CSI research.
 The running figures is shown as below.
-![]()
-![]()
-![]()
-![]()
+![rssi](https://github.com/luxiangx/CSIPlotter/blob/master/images/rssi.png)
+![csi](https://github.com/luxiangx/CSIPlotter/blob/master/images/subcarrier.png)
+![csi pair](https://github.com/luxiangx/CSIPlotter/blob/master/images/antenna.png)
+![all csi](https://github.com/luxiangx/CSIPlotter/blob/master/images/all.png)
 
-# What do you need to do before using?
+### What do you need to do before using?
 - OS -- Ubuntu 12.04 or 14.04
 - CSI tool -- Intel 5300
 - sudo command -- password free
 - python3 and some libs like matplotlib, QT5
+- **fix the UI.py line 225 to your logging program path**
 
-# How to use it?
+### How to use it?
 The mian UI with 4 parts is shown as below.
 
-![ui](https://github.com/luxiangx/CSIPlotter/blob/master/readme_img/ui.png)
+![ui](https://github.com/luxiangx/CSIPlotter/blob/master/images/ui.png)
 
-## UI Introduction
+#### UI Introduction
 - 1 figure block
 
 Show the RSSI or CSI data in different mode. The x axis is time axis. 
@@ -41,20 +42,20 @@ NO combobox contains 30 value from 1 to 30 represented the 30 subcarriers number
 Select the data path and file name.
 - 4 control and message block
 
-To start to show or pause and quit. Message box shows the running state.
+To start or pause or quit. Message box shows the running state.
 
-## steps to use it
-1. Set the injection and monitor mode, ping is ok but I recommend this method.
+#### steps to use it
+1. Set the injection and monitor mode. Ping is ok but I recommend this method.
 2. Run ui.py.
 3. Click the save-path button to select the saving directory and edit the file name.
 4. Set the showing mode as you want.
 5. Click the start to show, pause to puase and quit to quit.
 
-# Bugs
+### Bugs
 1. When you run ui.py, and click start, forget to click pause of quit button, just terminate program with pycharm or other IDE stop button.
 The log procedure will still run in backend. And when you run it again, it dose not working. The solution is that delete the logging file.
 2. Due to my poor coding, the program is  inefficient. Some laptops with old hardware may not use it.
 
 -------
-The software is free to use for your research. If you find some bugs or want to join this project to improve the usability of the software. Welcome to contact me.
+The software is free to use for your research. If you find some bugs or want to join this project to improve the usability of the software, welcome to contact me.
 My email is <luxiangisme@gmail.com>. 
