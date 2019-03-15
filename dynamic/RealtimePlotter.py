@@ -202,7 +202,7 @@ class RealtimePlotter(object):
     def log(self):
         subprocess.call(
             "cd " + self.filename[:self.filename.find(self.filename.split("/")[-1])] +
-            "; sudo /home/luxiang/linux-80211n-csitool-supplementary/netlink/log_to_file " +
+            "; sudo ~/linux-80211n-csitool-supplementary/netlink/log_to_file " +
             self.filename.split("/")[-1] + "&", shell=True)
 
     def stop_log(self):
